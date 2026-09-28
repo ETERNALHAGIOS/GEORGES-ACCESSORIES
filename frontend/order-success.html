@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Order confirmation — George Accessories</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.confirm-wrap{min-height:80vh; display:flex; align-items:center; justify-content:center; padding:40px 5vw;}
+.confirm-card{background:#fff; border-radius:24px; padding:40px 30px; max-width:440px; text-align:center; box-shadow:0 20px 50px -20px rgba(10,25,60,.3);}
+.confirm-card .emoji{font-size:2.8rem;}
+.confirm-card h1{color:var(--deep); font-size:1.4rem; margin:14px 0 8px;}
+.confirm-card p{color:#5b6a85; font-size:.92rem; line-height:1.5;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg class="logo-mark" width="30" height="30" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="36" height="36" rx="11" fill="url(#g4)"/>
+      <path d="M23 13.5a7 7 0 1 0 0 9M23 18h-5.5v0" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      <defs><linearGradient id="g4" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#7C5CFF"/><stop offset="0.55" stop-color="#F2B84B"/><stop offset="1" stop-color="#2DD4BF"/>
+      </linearGradient></defs>
+    </svg>
+    <b>George</b>&nbsp;<span>Accessories</span>
+  </div>
+</header>
+
+<div class="confirm-wrap">
+  <div class="confirm-card" id="confirmCard">
+    <div class="emoji">⏳</div>
+    <h1>Checking your payment…</h1>
+    <p>Hang on a moment while we confirm this with Paystack.</p>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-bottom">
+    <span>©2026 George Accessories ®™</span>
+    <span>Website created by YamoahWeb™</span>
+  </div>
+</footer>
+
+<script src="config.js"></script>
+<script>
+const params = new URLSearchParams(window.location.search);
+const reference = params.get('reference') || params.get('trxref');
+const card = document.getElementById('confirmCard');
+
+async function verify() {
+  if (!reference) {
+    card.innerHTML = '<div class="emoji">❓</div><h1>No payment reference found</h1><p>If you believe you paid, please contact us on +233 53 184 7180.</p>';
+    return;
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/payment/verify/${reference}`);
+    const data = await res.json();
+    if (data.status === 'success') {
+      card.innerHTML = '<div class="emoji">✅</div><h1>Payment successful!</h1><p>Thank you — your order is confirmed. We\'ll reach out on the phone number you provided to arrange delivery.</p>';
+    } else {
+      card.innerHTML = '<div class="emoji">⚠️</div><h1>Payment not completed</h1><p>Your payment did not go through. Please try checking out again, or call us on +233 53 184 7180.</p>';
+    }
+  } catch (err) {
+    card.innerHTML = '<div class="emoji">⚠️</div><h1>Could not confirm payment</h1><p>Please contact us on +233 53 184 7180 with your reference: ' + reference + '</p>';
+  }
+}
+verify();
+</script>
+</body>
+</html>

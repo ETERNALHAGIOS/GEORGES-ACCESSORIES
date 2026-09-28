@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Orders — George Accessories</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.orders-wrap{max-width:700px; margin:0 auto; padding:40px 5vw;}
+.orders-wrap h1{color:var(--deep); font-size:1.5rem; margin-bottom:20px;}
+.order-card{background:#fff; border:1px solid #e7edf9; border-radius:16px; padding:16px; margin-bottom:14px;}
+.order-card .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+.order-card .top b{color:var(--deep);}
+.status-pill{padding:3px 10px; border-radius:999px; font-size:.72rem; font-weight:600;}
+.status-pending{background:#fff4dc; color:#946200;}
+.status-paid{background:#e4f7ea; color:#1c7a3f;}
+.status-failed{background:#fdeceb; color:#b23b3b;}
+.order-card .items{color:#5b6a85; font-size:.85rem; margin-top:4px;}
+.signin-note{text-align:center; padding:60px 20px; color:#5b6a85;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><a href="index.html" style="color:var(--ink); text-decoration:none; display:flex; align-items:center; gap:10px;">
+    <svg class="logo-mark" width="30" height="30" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="36" height="36" rx="11" fill="url(#g3)"/>
+      <path d="M23 13.5a7 7 0 1 0 0 9M23 18h-5.5v0" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      <defs><linearGradient id="g3" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#7C5CFF"/><stop offset="0.55" stop-color="#F2B84B"/><stop offset="1" stop-color="#2DD4BF"/>
+      </linearGradient></defs>
+    </svg>
+    <b>George</b>&nbsp;<span>Accessories</span>
+  </a></div>
+</header>
+
+<div class="orders-wrap">
+  <h1>My orders</h1>
+  <div id="ordersList"></div>
+</div>
+
+<footer>
+  <div class="foot-bottom">
+    <span>©2026 George Accessories ®™</span>
+    <span>Website created by YamoahWeb™</span>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="config.js"></script>
+<script>
+const token = localStorage.getItem('kwame_customer_token');
+const el = document.getElementById('ordersList');
+
+async function loadMyOrders() {
+  if (!token) {
+    el.innerHTML = '<div class="signin-note">Sign in with Google on the main shop page to see your orders here.<br><br><a href="index.html">← Back to shop</a></div>';
+    return;
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/orders/mine`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error();
+    const orders = await res.json();
+    if (orders.length === 0) {
+      el.innerHTML = '<div class="signin-note">You haven\'t placed any orders yet.<br><br><a href="index.html">← Start shopping</a></div>';
+      return;
+    }
+    window.MY_ORDERS = orders;
+    el.innerHTML = orders.map((o, idx) => `
+      <div class="order-card">
+        <div class="top">
+          <b>GH₵${o.total.toLocaleString()}</b>
+          <span class="status-pill status-${o.paymentStatus}">${o.paymentStatus}</span>
+        </div>
+        <div class="items">${o.items.map(i => `${i.name} x${i.qty}`).join(', ')}</div>
+        <div class="items">Status: ${o.orderStatus} · Placed ${new Date(o.createdAt).toLocaleDateString()}</div>
+        <button class="btn-submit" style="margin-top:10px; padding:9px 16px; flex:none;" onclick="downloadInvoice(${idx})">⬇ Download invoice (PDF)</button>
+      </div>`).join('');
+  } catch (err) {
+    el.innerHTML = '<div class="signin-note">Could not load your orders. Please try again later.</div>';
+  }
+}
+function downloadInvoice(idx) {
+  const o = window.MY_ORDERS[idx];
+  const doc = new window.jspdf.jsPDF();
+  let y = 20;
+  doc.setFontSize(20); doc.text('George Accessories', 20, y);
+  doc.setFontSize(10); y += 7; doc.text('Tel: +233 53 184 7180', 20, y);
+  y += 12; doc.setFontSize(16); doc.text('INVOICE', 20, y);
+  doc.setFontSize(10);
+  y += 8; doc.text('Invoice no: ' + o._id.slice(-8).toUpperCase(), 20, y);
+  y += 6; doc.text('Date: ' + new Date(o.createdAt).toLocaleDateString(), 20, y);
+  y += 6; doc.text('Payment status: ' + o.paymentStatus.toUpperCase(), 20, y);
+  y += 10; doc.text('Billed to: ' + o.customerName, 20, y);
+  y += 6; doc.text('Phone: ' + o.phone, 20, y);
+  y += 6; doc.text('Address: ' + o.address, 20, y);
+  y += 12; doc.setFont(undefined, 'bold');
+  doc.text('Item', 20, y); doc.text('Qty', 120, y); doc.text('Price', 140, y); doc.text('Total', 170, y);
+  doc.setFont(undefined, 'normal'); y += 3; doc.line(20, y, 190, y);
+  o.items.forEach(i => {
+    y += 8;
+    doc.text(String(i.name).slice(0, 48), 20, y); doc.text(String(i.qty), 120, y);
+    doc.text('GHS ' + i.price.toLocaleString(), 140, y); doc.text('GHS ' + (i.price * i.qty).toLocaleString(), 170, y);
+  });
+  y += 5; doc.line(20, y, 190, y);
+  y += 9; doc.setFont(undefined, 'bold'); doc.text('TOTAL: GHS ' + o.total.toLocaleString(), 140, y);
+  y += 20; doc.setFont(undefined, 'normal'); doc.text('Thank you for shopping with George Accessories.', 20, y);
+  doc.save('invoice-' + o._id.slice(-8).toUpperCase() + '.pdf');
+}
+loadMyOrders();
+</script>
+</body>
+</html>

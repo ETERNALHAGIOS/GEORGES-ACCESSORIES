@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — George Accessories</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+<style>
+body{background:#eef3fc;}
+.admin-header{background:var(--deep); color:#fff; padding:16px 5vw; display:flex; justify-content:space-between; align-items:center;}
+.admin-header .logo{color:#fff;}
+.logout-btn{background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.3); color:#fff; border-radius:10px; padding:8px 14px; font-size:.82rem; cursor:pointer;}
+.admin-wrap{padding:34px 5vw; max-width:1100px; margin:0 auto;}
+.login-wrap{min-height:85vh; display:flex; align-items:center; justify-content:center;}
+.login-card{background:#fff; border-radius:22px; padding:34px; width:min(360px,90vw); box-shadow:0 20px 50px -20px rgba(10,25,60,.3);}
+.login-card h1{color:var(--deep); font-size:1.3rem; margin-bottom:6px;}
+.login-card p{color:#5b6a85; font-size:.85rem; margin-bottom:16px;}
+.tabs{display:flex; gap:10px; margin-bottom:24px;}
+.tab-btn{background:#fff; border:1px solid #d7e2f7; border-radius:999px; padding:9px 18px; font-weight:600; font-size:.85rem; color:var(--deep); cursor:pointer;}
+.tab-btn.active{background:var(--blue); color:#fff; border-color:var(--blue);}
+.panel{display:none;}
+.panel.active{display:block;}
+.admin-toolbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:10px;}
+.admin-toolbar h2{color:var(--deep); font-size:1.3rem;}
+.add-btn2{background:var(--deep); color:#fff; border:none; border-radius:12px; padding:11px 18px; font-weight:600; font-size:.85rem; cursor:pointer;}
+table{width:100%; border-collapse:collapse; background:#fff; border-radius:16px; overflow:hidden;}
+th,td{text-align:left; padding:12px 14px; font-size:.86rem; border-bottom:1px solid #eef1f8;}
+th{background:#f7f9fd; color:#5b6a85; font-weight:600; font-size:.78rem; text-transform:uppercase; letter-spacing:.03em;}
+td img{width:42px; height:42px; object-fit:cover; border-radius:8px;}
+.mini-btn{background:#eef3fc; color:var(--deep); border:none; border-radius:8px; padding:6px 10px; font-size:.76rem; font-weight:600; cursor:pointer; margin-right:6px;}
+.mini-btn.danger{background:#fdeceb; color:#b23b3b;}
+.status-pill{padding:3px 10px; border-radius:999px; font-size:.72rem; font-weight:600; display:inline-block;}
+.status-pending{background:#fff4dc; color:#946200;}
+.status-paid{background:#e4f7ea; color:#1c7a3f;}
+.status-failed{background:#fdeceb; color:#b23b3b;}
+.order-select{padding:5px 8px; border-radius:8px; border:1px solid #d7e2f7; font-size:.78rem;}
+.empty-note{color:#5b6a85; padding:20px; text-align:center;}
+</style>
+</head>
+<body>
+
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <h1>Admin login</h1>
+    <p>This page is only reachable by its direct link — it's not linked from the customer site.</p>
+    <label>Admin key</label>
+    <input type="password" id="adminKey" placeholder="Enter admin key">
+    <div class="err" id="loginErr">Incorrect key. Try again.</div>
+    <button class="btn-submit" id="loginSubmit" style="width:100%; margin-top:16px;">Unlock dashboard</button>
+  </div>
+</div>
+
+<div id="dashboard" style="display:none">
+  <div class="admin-header">
+    <div class="logo" style="display:flex; align-items:center; gap:10px;">
+      <svg class="logo-mark" width="28" height="28" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="36" height="36" rx="11" fill="url(#g5)"/>
+        <path d="M23 13.5a7 7 0 1 0 0 9M23 18h-5.5v0" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <defs><linearGradient id="g5" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#7C5CFF"/><stop offset="0.55" stop-color="#F2B84B"/><stop offset="1" stop-color="#2DD4BF"/>
+        </linearGradient></defs>
+      </svg>
+      George Accessories — Admin
+    </div>
+    <button class="logout-btn" id="logoutBtn">Log out</button>
+  </div>
+  <div class="admin-wrap">
+    <div class="tabs">
+      <button class="tab-btn active" data-panel="productsPanel">Products</button>
+      <button class="tab-btn" data-panel="ordersPanel">Orders</button>
+    </div>
+
+    <div class="panel active" id="productsPanel">
+      <div class="admin-toolbar">
+        <h2>Products</h2>
+        <button class="add-btn2" id="newProductBtn">+ Add product</button>
+      </div>
+      <table>
+        <thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price (GH₵)</th><th>In stock</th><th></th></tr></thead>
+        <tbody id="productsBody"></tbody>
+      </table>
+    </div>
+
+    <div class="panel" id="ordersPanel">
+      <div class="admin-toolbar"><h2>Orders</h2></div>
+      <table>
+        <thead><tr><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Placed</th></tr></thead>
+        <tbody id="ordersBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <h2 id="productModalTitle">Add product</h2>
+    <input type="hidden" id="productId">
+    <label>Name</label>
+    <input type="text" id="pName" placeholder="e.g. iPhone 15 Pro">
+    <label>Tag / description</label>
+    <input type="text" id="pTag" placeholder="e.g. Smartphone · 256GB">
+    <label>Category</label>
+    <input type="text" id="pCategory" list="catList" placeholder="e.g. Phones, TVs, Gaming, Smart Home…">
+    <datalist id="catList"><option>Phones</option><option>Laptops</option><option>Tablets</option><option>TVs &amp; Displays</option><option>Audio</option><option>Gaming</option><option>Cameras</option><option>Wearables</option><option>Smart Home</option><option>Networking</option><option>Storage</option><option>Printers &amp; Office</option><option>Accessories</option></datalist>
+    <label>Price (GH₵)</label>
+    <input type="number" id="pPrice" placeholder="e.g. 4200">
+    <label>Product photo</label>
+    <input type="file" id="pImageFile" accept="image/*">
+    <img id="pImagePreview" style="margin-top:10px; max-height:120px; border-radius:10px; display:none;">
+    <label style="display:flex; align-items:center; gap:8px; margin-top:14px;">
+      <input type="checkbox" id="pInStock" style="width:auto;" checked> In stock
+    </label>
+    <div class="err" id="productErr">Name and price are required.</div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="productCancel">Cancel</button>
+      <button class="btn-submit" id="productSave">Save product</button>
+    </div>
+  </div>
+</div>
+
+<script src="../config.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
